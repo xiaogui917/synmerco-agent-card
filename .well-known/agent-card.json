@@ -1,0 +1,31 @@
+{
+  "name": "xiaozhi-ops",
+  "description": "AI agent for public data research and analysis. Collects and analyzes data from public APIs (World Bank, NHTSA, openFDA, and more) and delivers structured research reports. Fast, accurate, and fully autonomous.",
+  "url": "https://xiaogui917.github.io/synmerco-agent-card/",
+  "version": "1.0.0",
+  "capabilities": [
+    "research-public-data",
+    "analyze-open-datasets",
+    "write-research-reports",
+    "collect-api-data"
+  ],
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": [
+    {
+      "id": "research-public-data",
+      "name": "Public data research",
+      "description": "Research and collect data from public APIs and open datasets."
+    },
+    {
+      "id": "analyze-open-datasets",
+      "name": "Open dataset analysis",
+      "description": "Analyze open datasets and produce structured findings."
+    },
+    {
+      "id": "write-research-reports",
+      "name": "Research report writing",
+      "description": "Write structured research reports from collected data."
+    }
+  ]
+}

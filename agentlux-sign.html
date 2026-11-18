@@ -15,15 +15,16 @@ textarea { width: 100%; box-sizing: border-box; }
 <body>
 <h1>AgentLux 签名验证</h1>
 <p>钱包：<code>0x93Be7f04DE2FD79379F910f598D13e16E5d8e867</code></p>
-<p>Challenge（5 分钟有效，至 19:30 HKT）：</p>
-<code id="nonce">81b48871e5c45cf6436722bc060448dfe4d0046f2bd3bed7e07de469c51449a9</code>
+<p>Challenge：</p>
+<code id="nonce">881a3d2fec8a322fc9fc11a84550df0a35e5be979b9739c2cc5033bbe68454ba</code>
 <p><button id="signBtn">连接钱包并签名</button></p>
 <p id="status"></p>
 <p><label>签名结果（复制后贴回聊天）：</label></p>
 <textarea id="sig" rows="4" readonly></textarea>
 <p><button id="copyBtn">复制签名</button></p>
 <script>
-const NONCE = "81b48871e5c45cf6436722bc060448dfe4d0046f2bd3bed7e07de469c51449a9";
+const NONCE = "881a3d2fec8a322fc9fc11a84550df0a35e5be979b9739c2cc5033bbe68454ba";
+const HEX_MSG = "0x38383161336432666563386133323266633966633131613834353530646630613335653562653937396239373339633263633530333362626536383435346261";
 const EXPECTED = "0x93Be7f04DE2FD79379F910f598D13e16E5d8e867";
 document.getElementById('signBtn').onclick = async () => {
   const status = document.getElementById('status');
@@ -36,7 +37,7 @@ document.getElementById('signBtn').onclick = async () => {
       return;
     }
     status.textContent = '已连接，等待签名…';
-    const sig = await window.ethereum.request({method: 'personal_sign', params: [NONCE, account]});
+    const sig = await window.ethereum.request({method: 'personal_sign', params: [HEX_MSG, account]});
     document.getElementById('sig').value = sig;
     status.textContent = '签名成功！复制下方签名贴回聊天。';
   } catch (e) {

@@ -16,15 +16,15 @@ textarea { width: 100%; box-sizing: border-box; }
 <h1>AgentLux 签名验证</h1>
 <p>钱包：<code>0x93Be7f04DE2FD79379F910f598D13e16E5d8e867</code></p>
 <p>Challenge：</p>
-<code id="nonce">178839870145afd876ab670f197508f89b0b3706be515f26325366b634fabeff</code>
+<code id="nonce">a90effc6be94d43cf665ecbed9a9d22d85d1fbcaccd748d3b4c3d471db69fcbe</code>
 <p><button id="signBtn">连接钱包并签名</button></p>
 <p id="status"></p>
 <p><label>签名结果（复制后贴回聊天）：</label></p>
 <textarea id="sig" rows="4" readonly></textarea>
 <p><button id="copyBtn">复制签名</button></p>
 <script>
-const NONCE = "178839870145afd876ab670f197508f89b0b3706be515f26325366b634fabeff";
-const HEX_MSG = "0x31373838333938373031343561666438373661623637306631393735303866383962306233373036626535313566323633323533363662363334666162656666";
+const NONCE = "a90effc6be94d43cf665ecbed9a9d22d85d1fbcaccd748d3b4c3d471db69fcbe";
+const HEX_MSG = "0x61393065666663366265393464343363663636356563626564396139643232643835643166626361636364373438643362346333643437316462363966636265";
 const EXPECTED = "0x93Be7f04DE2FD79379F910f598D13e16E5d8e867";
 document.getElementById('signBtn').onclick = async () => {
   const status = document.getElementById('status');

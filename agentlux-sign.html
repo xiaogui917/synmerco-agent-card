@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentLux 签名验证</title>
+<style>
+body { font-family: sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; line-height: 1.6; }
+code { word-break: break-all; background: #f2f2f2; padding: 2px 4px; }
+button { font-size: 18px; padding: 12px 20px; margin: 12px 0; }
+textarea { width: 100%; box-sizing: border-box; }
+#status { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>AgentLux 签名验证</h1>
+<p>钱包：<code>0x93Be7f04DE2FD79379F910f598D13e16E5d8e867</code></p>
+<p>Challenge：</p>
+<code id="nonce">178839870145afd876ab670f197508f89b0b3706be515f26325366b634fabeff</code>
+<p><button id="signBtn">连接钱包并签名</button></p>
+<p id="status"></p>
+<p><label>签名结果（复制后贴回聊天）：</label></p>
+<textarea id="sig" rows="4" readonly></textarea>
+<p><button id="copyBtn">复制签名</button></p>
+<script>
+const NONCE = "178839870145afd876ab670f197508f89b0b3706be515f26325366b634fabeff";
+const HEX_MSG = "0x31373838333938373031343561666438373661623637306631393735303866383962306233373036626535313566323633323533363662363334666162656666";
+const EXPECTED = "0x93Be7f04DE2FD79379F910f598D13e16E5d8e867";
+document.getElementById('signBtn').onclick = async () => {
+  const status = document.getElementById('status');
+  try {
+    if (!window.ethereum) { status.textContent = '未检测到钱包，请用 OKX App 内置浏览器打开本页。'; return; }
+    const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
+    const account = accounts[0];
+    if (account.toLowerCase() !== EXPECTED.toLowerCase()) {
+      status.textContent = '当前钱包不是 0x93Be…e867，请切换钱包后重试。当前：' + account;
+      return;
+    }
+    status.textContent = '已连接，等待签名…';
+    const sig = await window.ethereum.request({method: 'personal_sign', params: [HEX_MSG, account]});
+    document.getElementById('sig').value = sig;
+    status.textContent = '签名成功！复制下方签名贴回聊天。';
+  } catch (e) {
+    status.textContent = '失败：' + (e && e.message ? e.message : e);
+  }
+};
+document.getElementById('copyBtn').onclick = () => {
+  const t = document.getElementById('sig');
+  t.select();
+  document.execCommand('copy');
+};
+</script>
+</body>
+</html>

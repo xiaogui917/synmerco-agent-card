@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIBTC 注册签名（xiaozhi-ops）</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; line-height: 1.6; color: #222; }
+  h1 { font-size: 20px; }
+  code { background: #f2f2f2; padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+  textarea { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 12px; }
+  button { padding: 10px 18px; font-size: 15px; margin: 8px 0; cursor: pointer; }
+  .warn { color: #b3261e; font-weight: bold; }
+  .ok { color: #137333; font-weight: bold; }
+  .box { border: 1px solid #ccc; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+  .small { font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+<h1>AIBTC 注册签名（xiaozhi-ops）</h1>
+<p>给 xiaozhi-ops 在 aibtc.com 注册 agent 用。需要签两条消息，证明你拥有 BTC 地址与 Stacks 地址。<b>签名不会动钱、不花 gas。</b>不要在任何地方输入助记词或私钥。</p>
+<p>要签的消息（一字不差）：<br><code id="msg">Bitcoin will be the currency of AIs</code></p>
+<p>BTC 地址：<br><code>bc1q0whgmltuhkn55lvef6td4hmx56evm3ra7tdf2l</code></p>
+
+<div class="box">
+<h2>第一步：BTC 签名（BIP-322）</h2>
+<button id="btnBtc" type="button">连接 BTC 钱包并签名</button>
+<p id="btcStatus" class="small">未开始。请用 OKX App 内置浏览器打开本页。</p>
+<p class="small">连上的 BTC 地址：<code id="btcAddr">—</code></p>
+<p class="small">签名类型：<code id="btcType">—</code></p>
+<textarea id="btcSig" rows="3" readonly placeholder="BTC 签名会出现在这里"></textarea>
+<p class="small">如果连上的地址是 bc1p 开头的 Taproot 地址，请先在 OKX 钱包里把 BTC 地址切换为 Native SegWit（bc1q）再签。</p>
+</div>
+
+<div class="box">
+<h2>第二步：Stacks 签名</h2>
+<button id="btnStx" type="button">连接 Stacks 钱包并签名</button>
+<p id="stxStatus" class="small">未开始。</p>
+<p class="small">Stacks 地址：<code id="stxAddr">—</code></p>
+<p class="small">Stacks 公钥：<code id="stxPub">—</code></p>
+<textarea id="stxSig" rows="3" readonly placeholder="Stacks 签名会出现在这里"></textarea>
+</div>
+
+<div class="box">
+<h2>结果：整段贴回聊天</h2>
+<textarea id="result" rows="8" readonly placeholder="两条签名都完成后，这里会出现一段 JSON，整段复制贴回聊天即可"></textarea><br>
+<button id="btnCopy" type="button">复制全部结果</button>
+<span id="copyStatus" class="small"></span>
+</div>
+
+<p class="small">签完把上面 JSON 整段贴回聊天；小智验证通过、注册成功后会立即删掉本页。</p>
+
+<script>
+const MSG = "Bitcoin will be the currency of AIs";
+const EXPECT_BTC = "bc1q0whgmltuhkn55lvef6td4hmx56evm3ra7tdf2l";
+const state = { btcAddress: "", bitcoinSignature: "", stxAddress: "", stacksSignature: "", stacksPublicKey: "", btcPublicKey: "" };
+
+function normAddr(v) {
+  if (!v) return "";
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v[0] || "";
+  return v.address || v[0] || "";
+}
+function normSig(v) {
+  if (!v) return "";
+  if (typeof v === "string") return v;
+  return v.signature || v.sig || "";
+}
+function updateResult() {
+  if (state.btcAddress && state.bitcoinSignature && state.stxAddress && state.stacksSignature) {
+    document.getElementById("result").value = JSON.stringify({
+      btcAddress: state.btcAddress,
+      bitcoinSignature: state.bitcoinSignature,
+      stxAddress: state.stxAddress,
+      stacksSignature: state.stacksSignature,
+      stacksPublicKey: state.stacksPublicKey
+    }, null, 2);
+  }
+}
+
+document.getElementById("btnBtc").addEventListener("click", async () => {
+  const st = document.getElementById("btcStatus");
+  try {
+    if (!window.okxwallet || !window.okxwallet.bitcoin) { st.innerHTML = '<span class="warn">没检测到 OKX 钱包。请用 OKX App 内置浏览器打开本页。</span>'; return; }
+    st.textContent = "正在连接 BTC 钱包…";
+    const conn = await window.okxwallet.bitcoin.connect();
+    const addr = normAddr(conn);
+    state.btcAddress = addr;
+    state.btcPublicKey = (conn && conn.publicKey) || "";
+    document.getElementById("btcAddr").textContent = addr || "（未取到地址）";
+    if (addr !== EXPECT_BTC) {
+      st.innerHTML = '<span class="warn">连上的地址不是要签的 bc1q 地址。请在 OKX 钱包里切换到 Native SegWit（bc1q）地址后再点一次。</span>';
+      return;
+    }
+    st.textContent = "地址一致，正在签名（BIP-322）…";
+    let sig = "", used = "bip322-simple";
+    try {
+      sig = await window.okxwallet.bitcoin.signMessage(MSG, "bip322-simple");
+    } catch (e1) {
+      used = "default";
+      sig = await window.okxwallet.bitcoin.signMessage(MSG);
+    }
+    state.bitcoinSignature = normSig(sig);
+    document.getElementById("btcSig").value = state.bitcoinSignature;
+    document.getElementById("btcType").textContent = used;
+    st.innerHTML = '<span class="ok">BTC 签名完成。</span>';
+    updateResult();
+  } catch (e) {
+    st.innerHTML = '<span class="warn">出错：' + (e && e.message ? e.message : e) + '。请重试，或截图发给小智。</span>';
+  }
+});
+
+document.getElementById("btnStx").addEventListener("click", async () => {
+  const st = document.getElementById("stxStatus");
+  try {
+    if (!window.okxwallet || !window.okxwallet.stacks) { st.innerHTML = '<span class="warn">没检测到 OKX 钱包的 Stacks 功能。请用 OKX App 内置浏览器打开本页。</span>'; return; }
+    st.textContent = "正在连接 Stacks 钱包…";
+    const conn = await window.okxwallet.stacks.connect();
+    const addr = normAddr(conn);
+    state.stxAddress = addr;
+    document.getElementById("stxAddr").textContent = addr || "（未取到地址）";
+    st.textContent = "正在签名…";
+    const res = await window.okxwallet.stacks.signMessage({ message: MSG });
+    state.stacksSignature = normSig(res);
+    state.stacksPublicKey = (res && res.publicKey) || "";
+    document.getElementById("stxSig").value = state.stacksSignature;
+    document.getElementById("stxPub").textContent = state.stacksPublicKey || "—";
+    st.innerHTML = '<span class="ok">Stacks 签名完成。</span>';
+    updateResult();
+  } catch (e) {
+    st.innerHTML = '<span class="warn">出错：' + (e && e.message ? e.message : e) + '。请重试，或截图发给小智。</span>';
+  }
+});
+
+document.getElementById("btnCopy").addEventListener("click", async () => {
+  const t = document.getElementById("result");
+  const cs = document.getElementById("copyStatus");
+  if (!t.value) { cs.textContent = "还没有结果可复制。"; return; }
+  try { await navigator.clipboard.writeText(t.value); cs.textContent = "已复制。"; }
+  catch (e) { t.select(); document.execCommand("copy"); cs.textContent = "已复制（请检查）。"; }
+});
+</script>
+</body>
+</html>
